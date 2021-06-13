@@ -26,6 +26,7 @@ namespace ReverseProxy
                     services.AddSingleton<DestinationService>();
                     services.AddSingleton<ReverseProxyService>();
 
+                    services.AddSingleton<Sockets>();
                     services.AddHostedService<Worker>();
                 });
     }
