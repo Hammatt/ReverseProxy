@@ -59,7 +59,7 @@ namespace ReverseProxy
             listener.Bind(localEndPoint);
             listener.Listen(100);
 
-            while (true)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 _logger.LogDebug("Waiting for a connection...");
                 listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
