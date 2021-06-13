@@ -26,9 +26,9 @@ namespace ReverseProxy.Parser
             HttpRequestMessage? httpRequestMessage = _httpRequestParser.ParseHttpRequest(bytes);
 
             Assert.NotNull(httpRequestMessage);
-            Assert.Equal(HttpMethod.Get, httpRequestMessage.Method);
-            Assert.Equal(new Uri("http://localhost/"), httpRequestMessage.RequestUri);
-            Assert.Equal(new Version("1.1"), httpRequestMessage.Version);
+            Assert.Equal(HttpMethod.Get, httpRequestMessage?.Method);
+            Assert.Equal(new Uri("http://localhost/"), httpRequestMessage?.RequestUri);
+            Assert.Equal(new Version("1.1"), httpRequestMessage?.Version);
         }
 
         [Fact]
@@ -40,15 +40,22 @@ namespace ReverseProxy.Parser
             HttpRequestMessage? httpRequestMessage = _httpRequestParser.ParseHttpRequest(bytes);
 
             Assert.NotNull(httpRequestMessage);
-            Assert.Equal(HttpMethod.Post, httpRequestMessage.Method);
-            Assert.Equal(new Uri("http://localhost/"), httpRequestMessage.RequestUri);
-            Assert.Equal(new Version("1.1"), httpRequestMessage.Version);
-            Assert.Equal("localhost:11000", httpRequestMessage.Headers.GetValues("Host").First());
-            Assert.Equal("curl/7.76.1", httpRequestMessage.Headers.GetValues("User-Agent").First());
-            Assert.Equal("*/*", httpRequestMessage.Headers.GetValues("Accept").First());
-            Assert.Equal("application/json", httpRequestMessage.Content.Headers.GetValues("Content-Type").First());
-            Assert.Equal("35", httpRequestMessage.Content.Headers.GetValues("Content-Length").First());
-            Assert.Equal(@"{""username"":""xyz"",""password"":""xyz""}", await httpRequestMessage.Content.ReadAsStringAsync());
+            Assert.Equal(HttpMethod.Post, httpRequestMessage?.Method);
+            Assert.Equal(new Uri("http://localhost/"), httpRequestMessage?.RequestUri);
+            Assert.Equal(new Version("1.1"), httpRequestMessage?.Version);
+            Assert.Equal("localhost:11000", httpRequestMessage?.Headers.GetValues("Host").First());
+            Assert.Equal("curl/7.76.1", httpRequestMessage?.Headers.GetValues("User-Agent").First());
+            Assert.Equal("*/*", httpRequestMessage?.Headers.GetValues("Accept").First());
+            Assert.Equal("application/json", httpRequestMessage?.Content?.Headers.GetValues("Content-Type").First());
+            Assert.Equal("35", httpRequestMessage?.Content?.Headers.GetValues("Content-Length").First());
+            string? content = null;
+            Assert.NotNull(httpRequestMessage?.Content);
+            if (httpRequestMessage?.Content == null)
+            {
+                throw new NullReferenceException();
+            }
+            content = await httpRequestMessage.Content.ReadAsStringAsync();
+            Assert.Equal(@"{""username"":""xyz"",""password"":""xyz""}", content);
         }
     }
 }
