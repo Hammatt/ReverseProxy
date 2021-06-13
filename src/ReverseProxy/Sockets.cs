@@ -68,29 +68,29 @@ namespace ReverseProxy
             }
         }
 
-        private void AcceptCallback(IAsyncResult ar)
+        private void AcceptCallback(IAsyncResult asyncResult)
         {
             _semaphore.Release();
 
-            if (ar.AsyncState == null)
+            if (asyncResult.AsyncState == null)
             {
-                throw new ArgumentNullException(nameof(ar.AsyncState));
+                throw new ArgumentNullException(nameof(asyncResult.AsyncState));
             }
-            Socket listener = (Socket) ar.AsyncState;  
-            Socket handler = listener.EndAccept(ar);
+            Socket listener = (Socket) asyncResult.AsyncState;  
+            Socket handler = listener.EndAccept(asyncResult);
     
             StateObject state = new StateObject();  
             state.WorkSocket = handler;  
             handler.BeginReceive(state.Buffer, 0, StateObject.BUFFER_SIZE, 0, new AsyncCallback(ReadCallback), state);
         }
 
-        private void ReadCallback(IAsyncResult ar)
+        private void ReadCallback(IAsyncResult asyncResult)
         {
-            if (ar.AsyncState == null)
+            if (asyncResult.AsyncState == null)
             {
-                throw new ArgumentNullException(nameof(ar.AsyncState));
+                throw new ArgumentNullException(nameof(asyncResult.AsyncState));
             }
-            StateObject state = (StateObject) ar.AsyncState;
+            StateObject state = (StateObject) asyncResult.AsyncState;
             if (state.WorkSocket == null)
             {
                 throw new ArgumentNullException(nameof(state.WorkSocket));
@@ -100,7 +100,7 @@ namespace ReverseProxy
 
             string content = string.Empty;
     
-            int bytesRead = handler.EndReceive(ar);
+            int bytesRead = handler.EndReceive(asyncResult);
             _logger.LogDebug("bytes read {0}", bytesRead);
     
             if (bytesRead > 0)
@@ -174,18 +174,18 @@ namespace ReverseProxy
             handler.BeginSend(buffer, 0, buffer.Length, 0, new AsyncCallback(SendCallback), handler);
         }
 
-        private void SendCallback(IAsyncResult ar)
+        private void SendCallback(IAsyncResult asyncResult)
         {
             try
             {
-                if (ar.AsyncState == null)
+                if (asyncResult.AsyncState == null)
                 {
-                    throw new ArgumentNullException(nameof(ar.AsyncState));
+                    throw new ArgumentNullException(nameof(asyncResult.AsyncState));
                 }
 
-                Socket handler = (Socket) ar.AsyncState;
+                Socket handler = (Socket) asyncResult.AsyncState;
     
-                int bytesSent = handler.EndSend(ar);
+                int bytesSent = handler.EndSend(asyncResult);
     
                 handler.Shutdown(SocketShutdown.Both);
                 handler.Close();  
