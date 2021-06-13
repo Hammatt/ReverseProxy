@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ReverseProxy.Parser;
 
 namespace ReverseProxy
 {
@@ -28,13 +29,16 @@ namespace ReverseProxy
                 StringBuilder = new StringBuilder();
                 WorkSocket = null;
             }
-        }  
+        }
 
+        private const string BLANK_LINE = "\r\n\r\n";
+        private readonly HttpRequestParser _httpRequestParser;
         private readonly ILogger<Worker> _logger;
         private readonly SemaphoreSlim _semaphore;
 
-        public Worker(ILogger<Worker> logger)
+        public Worker(HttpRequestParser httpRequestParser, ILogger<Worker> logger)
         {
+            _httpRequestParser = httpRequestParser;
             _logger = logger;
             _semaphore = new SemaphoreSlim(0, 1);
         }
@@ -58,7 +62,6 @@ namespace ReverseProxy
 
                     while (true)
                     {
-        
                         Console.WriteLine("Waiting for a connection...");
                         listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
         
@@ -100,12 +103,11 @@ namespace ReverseProxy
     
                 content = state.StringBuilder.ToString();
                 _logger.LogDebug("current content {0}", content);
-                if (content.IndexOf("\r\n") > -1)
+                if (content.IndexOf(BLANK_LINE) > -1)
                 {
-                    _logger.LogDebug("Found CRLF");
+                    _logger.LogDebug("Found Blank Line CRLF");
                     _logger.LogInformation("Read {0} bytes from socket. \n Data : {1}", content.Length, content);
-                    //TODO: read body...
-
+                    _httpRequestParser.ParseHttpRequest(state.Buffer);
                     Send(handler, "HTTP/1.1 200 OK\r\nContent-Length: 13\r\nConnection: close\r\n\r\nHello, world!");
                 }
                 else
