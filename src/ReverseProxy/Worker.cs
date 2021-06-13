@@ -85,7 +85,11 @@ namespace ReverseProxy
         public void AcceptCallback(IAsyncResult ar)
         {
             _semaphore.Release();
-    
+
+            if (ar.AsyncState == null)
+            {
+                throw new ArgumentNullException(nameof(ar.AsyncState));
+            }
             Socket listener = (Socket) ar.AsyncState;  
             Socket handler = listener.EndAccept(ar);
     
@@ -96,10 +100,19 @@ namespace ReverseProxy
 
         public void ReadCallback(IAsyncResult ar)
         {
-            string content = string.Empty;
-    
+            if (ar.AsyncState == null)
+            {
+                throw new ArgumentNullException(nameof(ar.AsyncState));
+            }
             StateObject state = (StateObject) ar.AsyncState;
+            if (state.WorkSocket == null)
+            {
+                throw new ArgumentNullException(nameof(state.WorkSocket));
+            }
             Socket handler = state.WorkSocket;
+
+
+            string content = string.Empty;
     
             int bytesRead = handler.EndReceive(ar);
             _logger.LogDebug("bytes read {0}", bytesRead);
@@ -186,10 +199,14 @@ namespace ReverseProxy
         {
             try
             {
+                if (ar.AsyncState == null)
+                {
+                    throw new ArgumentNullException(nameof(ar.AsyncState));
+                }
+
                 Socket handler = (Socket) ar.AsyncState;
     
                 int bytesSent = handler.EndSend(ar);
-                Console.WriteLine("Sent {0} bytes to client.", bytesSent);
     
                 handler.Shutdown(SocketShutdown.Both);
                 handler.Close();  
