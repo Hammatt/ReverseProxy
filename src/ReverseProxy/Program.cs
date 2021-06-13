@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ReverseProxy.DomainLogic;
 using ReverseProxy.Parser;
 
 namespace ReverseProxy
@@ -20,6 +21,11 @@ namespace ReverseProxy
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddSingleton<HttpRequestParser>();
+                    services.AddSingleton<HttpResponseParser>();
+
+                    services.AddSingleton<DestinationService>();
+                    services.AddSingleton<ReverseProxyService>();
+
                     services.AddHostedService<Worker>();
                 });
     }
